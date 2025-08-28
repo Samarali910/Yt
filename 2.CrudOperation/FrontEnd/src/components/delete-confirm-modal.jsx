@@ -9,6 +9,9 @@ export function DeleteConfirmModal({
   onConfirm,
   onCancel,
 }) {
+
+   console.log("selectedUsers",selectedUsers)
+
   if (!isOpen) return null
 
   return (
@@ -37,6 +40,7 @@ export function DeleteConfirmModal({
           <p className="text-card-foreground mb-4">
             Are you sure you want to delete {userCount === 1 ? "this user" : `these ${userCount} users`}?
           </p>
+ 
 
           {selectedUsers.length > 0 && (
             <div className="mb-4 p-3 bg-muted/30 rounded-lg border">

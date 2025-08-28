@@ -1,118 +1,148 @@
-"use client"
-import React from "react"
-import { useState, useEffect } from "react"
-import { SummaryCards } from "./summary-cards"
-import { DataTable } from "./data-table"
-import { DataCards } from "./data-cards"
-import { CreateEditModal } from "./create-edit-modal"
-import { DeleteConfirmModal } from "./delete-confirm-modal"
- 
+"use client";
+import React from "react";
+import { useState, useEffect } from "react";
+import { SummaryCards } from "./summary-cards";
+import { DataTable } from "./data-table";
+import { DataCards } from "./data-cards";
+import { CreateEditModal } from "./create-edit-modal";
+import { DeleteConfirmModal } from "./delete-confirm-modal";
+import { toast } from "react-toastify";
+import {
+  createUser,
+  deleteBulkUser,
+  deleteUser,
+  getAllUsers,
+} from "../apiservices/Apiservices";
 
 export function CrudInterface() {
-  const [users, setUsers] = useState([])
-  const [viewMode, setViewMode] = useState("table")
-  const [selectedUsers, setSelectedUsers] = useState([])
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, userIds: [], isLoading: false })
+  const [users, setUsers] = useState([]);
+  const [viewMode, setViewMode] = useState("table");
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    userIds: [],
+    isLoading: false,
+  });
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loader, setLoader] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("")
-
+  const getUsers = async () => {
+    const response = await getAllUsers();
+    if (response.users.length > 0) {
+      setUsers(response?.users);
+    }
+  };
   // Initialize with sample data
+ 
   useEffect(() => {
-    const sampleUsers = [
-      {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        role: "Admin",
-        status: "active",
-        createdAt: "2024-01-15",
-      },
-      {
-        id: "2",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        role: "User",
-        status: "active",
-        createdAt: "2024-01-20",
-      },
-      {
-        id: "3",
-        name: "Bob Johnson",
-        email: "bob@example.com",
-        role: "User",
-        status: "pending",
-        createdAt: "2024-01-25",
-      },
-      {
-        id: "4",
-        name: "Alice Brown",
-        email: "alice@example.com",
-        role: "Moderator",
-        status: "inactive",
-        createdAt: "2024-01-30",
-      },
-    ]
-    setUsers(sampleUsers)
-  }, [])
+    getUsers();
+  }, []);
 
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleCreateUser = (userData) => {
+  const handleCreateUser = async (userData) => {
+    setLoader(true);
     const newUser = {
       ...userData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split("T")[0],
+    };
+    const response = await createUser(newUser);
+
+ 
+    if (response.Success) {
+        toast.success("User created Successfully");  
+       getUsers();
+       setLoader(false);
+       setIsCreateModalOpen(false);
     }
-    setUsers((prev) => [...prev, newUser])
-    setIsCreateModalOpen(false)
+     setUsers((prev) => [...prev, newUser]);
+  };
+
+  function getCurrentDate() {
+    const today = new Date();
+
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
   }
 
   const handleUpdateUser = (userData) => {
-    if (!editingUser) return
-
-    setUsers((prev) => prev.map((user) => (user.id === editingUser.id ? { ...user, ...userData } : user)))
-    setEditingUser(null)
-  }
+    if (!editingUser) return;
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === editingUser.id ? { ...user, ...userData } : user
+      )
+    );
+    setEditingUser(null);
+  };
 
   const handleDeleteUsers = async (userIds) => {
-    setDeleteConfirm((prev) => ({ ...prev, isLoading: true }))
+    setDeleteConfirm((prev) => ({ ...prev, isLoading: true }));
+    setSelectedUsers((prev) => prev.filter((id) => !userIds.includes(id)));
+    if (deleteConfirm.userIds.length == 1) {
+      const response = await deleteUser(deleteConfirm?.userIds[0]);
+      if (response) {
+         toast.success("user Deleted Successfully")
+        await getUsers();
+        setDeleteConfirm({ isOpen: false, userIds: [], isLoading: false });
+      }
+    } else {
+      setDeleteConfirm({
+        isOpen: true,
+        userIds: selectedUsers,
+        isLoading: true,
+      });
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await deleteBulkUser(deleteConfirm.userIds);
+      if (response) {
+        toast.success("Bulk Deleted Successfully")
+        setDeleteConfirm({
+          isOpen: false,
+          userIds: [],
+          isLoading: false,
+        });
+        await getUsers();
+      }
+    }
+  };
 
-    setUsers((prev) => prev.filter((user) => !userIds.includes(user.id)))
-    setSelectedUsers((prev) => prev.filter((id) => !userIds.includes(id)))
-    setDeleteConfirm({ isOpen: false, userIds: [], isLoading: false })
-  }
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) return;
+    setDeleteConfirm({
+      isOpen: true,
+      userIds: selectedUsers,
+      isLoading: false,
+    });
+  };
 
-  const handleBulkDelete = () => {
-    if (selectedUsers.length === 0) return
-    setDeleteConfirm({ isOpen: true, userIds: selectedUsers, isLoading: false })
-  }
-
-  const handleSingleDelete = (userId) => {
-    setDeleteConfirm({ isOpen: true, userIds: [userId], isLoading: false })
-  }
+  const handleSingleDelete = async (userId) => {
+    setDeleteConfirm({ isOpen: true, userIds: [userId], isLoading: false });
+  };
 
   const getSelectedUserObjects = () => {
-    return users.filter((user) => deleteConfirm.userIds.includes(user.id))
-  }
+    return users.filter((user) => deleteConfirm.userIds.includes(user._id));
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">User Management</h1>
-          <p className="text-muted-foreground mt-1">Manage your users and their permissions</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            User Management
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your users and their permissions
+          </p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -193,6 +223,8 @@ export function CrudInterface() {
           onSelectionChange={setSelectedUsers}
           onEdit={setEditingUser}
           onDelete={handleSingleDelete}
+          getCurrentDate={getCurrentDate}
+          loader={loader}
         />
       ) : (
         <DataCards
@@ -201,6 +233,7 @@ export function CrudInterface() {
           onSelectionChange={setSelectedUsers}
           onEdit={setEditingUser}
           onDelete={handleSingleDelete}
+          getCurrentDate={getCurrentDate}
         />
       )}
 
@@ -208,12 +241,13 @@ export function CrudInterface() {
       <CreateEditModal
         isOpen={isCreateModalOpen || !!editingUser}
         onClose={() => {
-          setIsCreateModalOpen(false)
-          setEditingUser(null)
+          setIsCreateModalOpen(false);
+          setEditingUser(null);
         }}
         onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
         user={editingUser}
         title={editingUser ? "Edit User" : "Create New User"}
+        loader={loader}
       />
 
       <DeleteConfirmModal
@@ -222,8 +256,10 @@ export function CrudInterface() {
         userCount={deleteConfirm.userIds.length}
         selectedUsers={getSelectedUserObjects()} // Pass selected user objects to show names
         onConfirm={() => handleDeleteUsers(deleteConfirm.userIds)}
-        onCancel={() => setDeleteConfirm({ isOpen: false, userIds: [], isLoading: false })}
+        onCancel={() =>
+          setDeleteConfirm({ isOpen: false, userIds: [], isLoading: false })
+        }
       />
     </div>
-  )
+  );
 }

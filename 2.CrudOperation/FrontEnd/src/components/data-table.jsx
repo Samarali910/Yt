@@ -1,14 +1,17 @@
 "use client"
 import React from "react"
  
-export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onDelete }) {
+export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onDelete,getCurrentDate,loader }) {
+  
   const handleSelectAll = (checked) => {
     if (checked) {
-      onSelectionChange(users.map((user) => user.id))
+      onSelectionChange(users.map((user) => user._id))
     } else {
       onSelectionChange([])
     }
   }
+
+    
 
   const handleSelectUser = (userId, checked) => {
     if (checked) {
@@ -20,9 +23,9 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
 
   const getStatusBadge = (status) => {
     const styles = {
-      active: "bg-green-100 text-green-800 border-green-200",
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      inactive: "bg-red-100 text-red-800 border-red-200",
+      Active: "bg-green-100 text-green-800 border-green-200",
+      Pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      Inactive: "bg-red-100 text-red-800 border-red-200",
     }
 
     return (
@@ -31,6 +34,9 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
       </span>
     )
   }
+
+
+
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
@@ -57,11 +63,11 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {users?.map((user) => (
               <tr
-                key={user.id}
+                key={user._id}
                 className={`border-b border-border transition-all duration-200 ${
-                  selectedUsers.includes(user.id)
+                  selectedUsers.includes(user._id)
                     ? "bg-primary/5 border-primary/20" // Highlight selected rows
                     : "hover:bg-muted/50"
                 }`}
@@ -70,8 +76,8 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
                   <div className="flex items-center justify-center">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={(e) => handleSelectUser(user.id, e.target.checked)}
+                      checked={selectedUsers.includes(user._id)}
+                      onChange={(e) => handleSelectUser(user._id, e.target.checked)}
                       className="w-4 h-4 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
                   </div>
@@ -80,9 +86,11 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
                 <td className="p-4 text-foreground">{user.email}</td>
                 <td className="p-4 text-foreground font-medium">{user.role}</td>
                 <td className="p-4">{getStatusBadge(user.status)}</td>
-                <td className="p-4 text-foreground font-medium">{user.createdAt}</td>
+                <td className="p-4 text-foreground font-medium">{getCurrentDate(user.createdAt)}</td>
                 <td className="p-4">
                   <div className="flex items-center justify-end gap-1">
+
+
                     <button
                       onClick={() => onEdit(user)}
                       className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200 group"
@@ -102,8 +110,10 @@ export function DataTable({ users, selectedUsers, onSelectionChange, onEdit, onD
                         />
                       </svg>
                     </button>
+
+
                     <button
-                      onClick={() => onDelete(user.id)}
+                      onClick={() => onDelete(user._id)}
                       className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200 group"
                       title="Delete user"
                     >

@@ -4,18 +4,17 @@ import React from "react"
 
 import { useState, useEffect } from "react"
  
- 
+export function CreateEditModal({ isOpen, onClose, onSubmit, user, title,loader }) {
 
- 
-
-export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "User",
-    status: "active" ,
+    status: "Active" ,
   })
+
   const [errors, setErrors] = useState({})
+
 
   useEffect(() => {
     if (user) {
@@ -30,11 +29,12 @@ export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
         name: "",
         email: "",
         role: "User",
-        status: "active",
+        status: "Active",
       })
     }
     setErrors({})
   }, [user, isOpen])
+   
 
   const validateForm = () => {
     const newErrors = {}
@@ -57,6 +57,7 @@ export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
     return Object.keys(newErrors).length === 0
   }
 
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -64,6 +65,7 @@ export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
       onSubmit(formData)
     }
   }
+
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -139,9 +141,9 @@ export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
               onChange={(e) => handleChange("status", e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="pending">Pending</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Pending">Pending</option>
             </select>
           </div>
 
@@ -153,12 +155,21 @@ export function CreateEditModal({ isOpen, onClose, onSubmit, user, title }) {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-            >
-              {user ? "Update User" : "Create User"}
-            </button>
+           <button
+  type="submit"
+  disabled={loader} // loader ke time disable karna best practice hai
+  className={`flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium`}
+>
+  {loader ? (
+    <div className="flex items-center gap-2">
+      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+      <span>{user ? "Updating..." : "Creating..."}</span>
+    </div>
+  ) : (
+    <span>{user ? "Update User" : "Create User"}</span>
+  )}
+</button>
+
           </div>
         </form>
       </div>

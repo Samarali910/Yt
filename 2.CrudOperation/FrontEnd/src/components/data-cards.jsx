@@ -4,7 +4,8 @@
 import React from "react"
  
 
-export function DataCards({ users, selectedUsers, onSelectionChange, onEdit, onDelete }) {
+export function DataCards({ users, selectedUsers, onSelectionChange, onEdit, onDelete,getCurrentDate }) {
+  
   const handleSelectUser = (userId, checked) => {
     if (checked) {
       onSelectionChange([...selectedUsers, userId])
@@ -88,11 +89,11 @@ export function DataCards({ users, selectedUsers, onSelectionChange, onEdit, onD
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((user, index) => (
+        {users?.map((user, index) => (
           <div
-            key={user.id}
+            key={user._id}
             className={`${getCardGradient(index)} border rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200 ${
-              selectedUsers.includes(user.id)
+              selectedUsers.includes(user._id)
                 ? "border-primary ring-2 ring-primary/20 bg-primary/5" // Enhanced selection styling
                 : "border-border hover:border-primary/50"
             }`}
@@ -112,8 +113,8 @@ export function DataCards({ users, selectedUsers, onSelectionChange, onEdit, onD
               <div className="flex items-center justify-center">
                 <input
                   type="checkbox"
-                  checked={selectedUsers.includes(user.id)}
-                  onChange={(e) => handleSelectUser(user.id, e.target.checked)}
+                  checked={selectedUsers.includes(user._id)}
+                  onChange={(e) => handleSelectUser(user._id, e.target.checked)}
                   className="w-5 h-5 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -132,7 +133,7 @@ export function DataCards({ users, selectedUsers, onSelectionChange, onEdit, onD
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Created</p>
-                  <p className="text-sm font-semibold text-foreground">{user.createdAt}</p>
+                  <p className="text-sm font-semibold text-foreground">{getCurrentDate(user.createdAt)}</p>
                 </div>
               </div>
             </div>

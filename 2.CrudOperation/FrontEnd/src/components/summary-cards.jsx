@@ -1,11 +1,10 @@
  
 import React from "react"
- 
 export function SummaryCards({ users }) {
   const totalUsers = users.length
-  const activeUsers = users.filter((user) => user.status === "active").length
-  const pendingUsers = users.filter((user) => user.status === "pending").length
-  const inactiveUsers = users.filter((user) => user.status === "inactive").length
+  const activeUsers = users.filter((user) => user.status === "Active").length
+  const pendingUsers = users.filter((user) => user.status === "Pending").length
+  const inactiveUsers = users.filter((user) => user.status === "Inactive").length
 
   const cards = [
     {
